@@ -1,7 +1,10 @@
+import java.util.Arrays;
+
 public class Matrix {
     private int rows;
     private int columns;
     private double[][] elements;
+    private final static String NON_SQUARE_ERROR = "Error! Non-square matrix";
 
     public Matrix(int rows, int columns, double[][] elements) {
 	this.rows = rows;
@@ -72,6 +75,24 @@ public class Matrix {
 
 	Matrix trans = new Matrix(a.columns, a.rows, result);
 	return trans;
+    }
+
+    public static double trace(Matrix a) {
+	if (a.getRows() != a.getColumns())
+	{
+	    System.err.println("Error, non-square matrix");
+	    return -1.0;
+	}
+	else
+	{
+	    double traceSum = 0;
+	    for (int i = 0; i < a.getRows(); i++)
+	    {
+		traceSum += a.getElement(i, i);
+	    }
+
+	    return traceSum;
+	}
     }
 
     public static Matrix rref(Matrix a) {
@@ -191,12 +212,12 @@ public class Matrix {
 
     public static double det(Matrix a) {
 
-	// make sure matrix is square
+	// make sure matrix is square BEFORE being used.
 
 	if (a.rows != a.columns)
 	{
 	    // error
-	    System.out.println("Error! Non-square matrix");
+	    System.err.println(NON_SQUARE_ERROR);
 	    return -1;
 	}
 
@@ -284,6 +305,10 @@ public class Matrix {
 	return this.columns;
     }
 
+    public static boolean isSquare(Matrix a) {
+	return a.getColumns() == a.getRows();
+    }
+
     public static void main(String[] args) {
 	double a[][] = { { 3, 2, 1 }, { 3, 1, 2 }, { 2, 1, 3 } };
 	double b[][] = { { 3, 2, 1 }, { 3, 1, 2 }, { 2, 1, 3 } };
@@ -304,7 +329,5 @@ public class Matrix {
 	    System.out.println();
 	}
 	System.out.println("\n" + det(A));
-
     }
-
 }

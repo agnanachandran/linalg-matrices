@@ -6,8 +6,8 @@ import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
-
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -21,12 +21,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
+@SuppressWarnings({ "unchecked", "serial", "rawtypes", "unused" })
 public class Swing extends JFrame {
 
-    final Vector<Matrix> vect = new Vector<Matrix>();
     HashMap<String, Matrix> map = new HashMap<String, Matrix>();
     JTextArea area;
-    DecimalFormat df = new DecimalFormat("#.###");
+    DecimalFormat df = new DecimalFormat("###.000");
+    Matrix result = null;
 
     public Swing() {
 	initUI();
@@ -37,8 +38,6 @@ public class Swing extends JFrame {
 
 	int windowWidth = 800;
 	int windowHeight = 500;
-	int bWidth = 80;
-	int bHeight = 30;
 
 	// set up main panel
 	JPanel mainPanel = new JPanel();
@@ -96,12 +95,30 @@ public class Swing extends JFrame {
 		name = nameInput;
 
 		String elements = JOptionPane
-			.showInputDialog("Enter the elements for this matrix from left-to-right and top-to-bottom. Press enter after finishing each row!");
+			.showInputDialog("Enter the elements (separated by spaces) for this matrix from left-to-right and top-to-bottom. "
+				+ "Put a semi-colon after finishing each row EXCEPT the last row.");
 
-		double[][] d = { { 2, 3 }, { 2, 1 } };
-		Matrix c = new Matrix(2, 2, d);
-		map.put("Woah", c);
-
+		int semi = 1;
+		boolean foundSemi = false;
+		int count = 1;
+		for (int i = 0; i < elements.length(); i++)
+		{
+		    if (!foundSemi)
+		    {
+			if (elements.charAt(i) == ' ')
+			{
+			    count++;
+			}
+		    }
+		    if (elements.charAt(i) == ';')
+		    {
+			foundSemi = true;
+			semi++;
+		    }
+		}
+		rows = semi;
+		columns = count;
+		String matElements = elements.replaceAll(";", " ");
 		while (!validInput(elements))
 		{
 		    if (Integer.parseInt(elements) == JOptionPane.CLOSED_OPTION
@@ -117,21 +134,182 @@ public class Swing extends JFrame {
 
 		    }
 		}
-
-		// double[][] contents = getContents(elements, rows, columns);
-		// Matrix dimmedMatrix = new Matrix(rows, columns, contents);
-		// map.put(name, dimmedMatrix);
+		map.put(name,
+			new Matrix(rows, columns, getContents(matElements, rows, columns)));
 	    }
 
 	});
 
 	JButton editButton = new JButton("Edit Matrix");
 	editButton.addActionListener(new ActionListener() {
+
 	    public void actionPerformed(ActionEvent arg0) {
-		// edit matrix
+		final ArrayList<String> matrices = new ArrayList<String>();
+		matrices.addAll(map.keySet());
+		if (matrices.size() == 0)
+		{
+		    area.append("There are no matrices to edit!\n");
+		}
+		else
+		{
 
+		    Object[] matList = matrices.toArray();
+
+		    final JFrame frame = new JFrame("Edit Matrix");
+		    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		    final JComboBox comMatOne = new JComboBox(matList);
+		    comMatOne.setEditable(true);
+		    frame.add(comMatOne, BorderLayout.NORTH);
+
+		    final JLabel viewLabel = new JLabel("Choose a matrix to edit", null,
+			    JLabel.CENTER);
+		    frame.add(viewLabel, BorderLayout.CENTER);
+
+		    final JButton okButton = new JButton("OK");
+		    frame.add(okButton, BorderLayout.SOUTH);
+		    okButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+			    frame.dispose();
+			    String chosenMatrix = (String) comMatOne.getSelectedItem();
+			    map.remove(chosenMatrix);
+			    int rows = 0;
+			    int columns = 0;
+
+			    String elements = JOptionPane
+				    .showInputDialog("Enter the elements (separated by spaces) for this matrix from left-to-right and top-to-bottom. "
+					    + "Put a semi-colon after finishing each row EXCEPT the last row.");
+
+			    int semi = 1;
+			    boolean foundSemi = false;
+			    int count = 1;
+			    for (int i = 0; i < elements.length(); i++)
+			    {
+				if (!foundSemi)
+				{
+				    if (elements.charAt(i) == ' ')
+				    {
+					count++;
+				    }
+				}
+				if (elements.charAt(i) == ';')
+				{
+				    foundSemi = true;
+				    semi++;
+				}
+			    }
+			    rows = semi;
+			    columns = count;
+			    String matElements = elements.replaceAll(";", " ");
+			    while (!validInput(elements))
+			    {
+				if (Integer.parseInt(elements) == JOptionPane.CLOSED_OPTION
+					|| Integer.parseInt(elements) == JOptionPane.CANCEL_OPTION)
+				{
+
+				}
+
+				else
+				{
+				    elements = JOptionPane
+					    .showInputDialog("Something went wrong :(\nEnter the elements for this matrix from left-to-right and top-to-bottom. Press enter after finishing each row!");
+
+				}
+			    }
+			    map.put(chosenMatrix,
+				    new Matrix(rows, columns, getContents(matElements,
+					    rows, columns)));
+			}
+		    });
+
+		    frame.setSize(300, 200);
+		    frame.setVisible(true);
+		    frame.setLocationRelativeTo(null);
+
+		    frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		}
 	    }
+	});
 
+	JButton delButton = new JButton("Delete Matrix");
+	delButton.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+
+		final ArrayList<String> matrices = new ArrayList<String>();
+		matrices.addAll(map.keySet());
+
+		if (matrices.size() == 0)
+		{
+		    area.append("There are no matrices to delete!\n");
+		}
+		else
+		{
+		    Object[] matList = matrices.toArray();
+
+		    final JFrame frame = new JFrame("Delete Matrix");
+		    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		    final JComboBox comMatOne = new JComboBox(matList);
+		    comMatOne.setEditable(true);
+		    frame.add(comMatOne, BorderLayout.NORTH);
+
+		    final JLabel viewLabel = new JLabel("Choose a matrix to delete",
+			    null, JLabel.CENTER);
+		    frame.add(viewLabel, BorderLayout.CENTER);
+
+		    final JButton deleteButton = new JButton("Delete");
+		    frame.add(deleteButton, BorderLayout.SOUTH);
+		    deleteButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+			    map.remove(comMatOne.getSelectedItem());
+			    area.append("Removed matrix: " + comMatOne.getSelectedItem()
+				    + "\n");
+			    frame.dispose();
+			}
+		    });
+
+		    frame.setSize(300, 200);
+		    frame.setVisible(true);
+		    frame.setLocationRelativeTo(null);
+		    frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+		}
+	    }
+	});
+
+	JButton resultButton = new JButton("Save Last Matrix");
+	resultButton.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		if (result == null)
+		{
+		    area.append("There is no last result.\n");
+		}
+		else
+		{
+		    String nameInput = JOptionPane
+			    .showInputDialog("Enter a name for the matrix (make sure it's less than 10 characters) e.g. A, B, C, etc.");
+
+		    while (!(nameInput.length() < 10 && !map.containsKey(nameInput)))
+		    {
+			if (nameInput.equals(Integer.toString(JOptionPane.CLOSED_OPTION))
+				|| nameInput.equals(Integer
+					.toString(JOptionPane.CANCEL_OPTION)))
+			{
+
+			}
+
+			else
+			{
+			    nameInput = JOptionPane
+				    .showInputDialog("Something went wrong :(\nEnter a name for the matrix.");
+			}
+		    }
+		    map.put(nameInput, result);
+		}
+	    }
 	});
 
 	JButton viewButton = new JButton("View Matrix");
@@ -150,7 +328,8 @@ public class Swing extends JFrame {
 		comMatOne.setEditable(true);
 		frame.add(comMatOne, BorderLayout.NORTH);
 
-		final JLabel viewLabel = new JLabel("Choose a matrix to view!", null, JLabel.CENTER);
+		final JLabel viewLabel = new JLabel("Choose a matrix to view", null,
+			JLabel.CENTER);
 		frame.add(viewLabel, BorderLayout.CENTER);
 
 		final JButton okButton = new JButton("OK");
@@ -162,6 +341,7 @@ public class Swing extends JFrame {
 			if (matrices.size() != 0)
 			{
 			    String chosenMatrix = (String) comMatOne.getSelectedItem();
+			    area.append("Matrix " + chosenMatrix + ":\n");
 			    printMatrixString(chosenMatrix);
 			    area.append("\n");
 			}
@@ -175,9 +355,8 @@ public class Swing extends JFrame {
 		});
 
 		frame.setSize(300, 200);
-		frame.setVisible(true);	
+		frame.setVisible(true);
 		frame.setLocationRelativeTo(null);
-
 		frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 	    }
@@ -209,6 +388,7 @@ public class Swing extends JFrame {
 
 		final JButton okButton = new JButton("OK");
 		mainFrame.add(okButton, BorderLayout.SOUTH);
+
 		okButton.addActionListener(new ActionListener() {
 
 		    @Override
@@ -227,12 +407,13 @@ public class Swing extends JFrame {
 			    {
 
 				area.append("Adding matrices " + addOne + " and "
-					+ addTwo);
+					+ addTwo + "\n");
 				printMatrixString(addOne);
-				area.append("\n + \n");
+				area.append("\n + \n\n");
 				printMatrixString(addTwo);
 				area.append("\n = \n\n");
-				printMatrix(Matrix.add(map.get(addOne), map.get(addTwo)));
+				result = Matrix.add(map.get(addOne), map.get(addTwo));
+				printMatrix(result);
 				area.append("\n");
 			    }
 
@@ -302,13 +483,15 @@ public class Swing extends JFrame {
 			    {
 
 				area.append("Subtracting matrices " + subtractOne
-					+ " and " + subtractTwo);
+					+ " and " + subtractTwo + "\n");
 				printMatrixString(subtractOne);
-				area.append("\n + \n");
+				area.append("\n - \n\n");
 				printMatrixString(subtractTwo);
 				area.append("\n = \n");
-				printMatrix(Matrix.subtract(map.get(subtractOne),
-					map.get(subtractTwo)));
+				result = Matrix.subtract(map.get(subtractOne),
+					map.get(subtractTwo));
+
+				printMatrix(result);
 				area.append("\n");
 			    }
 
@@ -337,7 +520,72 @@ public class Swing extends JFrame {
 	JButton multiplyButton = new JButton("Multiply");
 	multiplyButton.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
-		// multiply matrices
+		final JFrame mainFrame = new JFrame("Multiply Matrices");
+		JPanel top = new JPanel();
+		mainFrame.add(top);
+
+		final ArrayList<String> matrices = new ArrayList<String>();
+		matrices.addAll(map.keySet());
+		Object[] matList = matrices.toArray();
+
+		final JComboBox comMatOne = new JComboBox(matList);
+		comMatOne.setEditable(true);
+		top.add(comMatOne, BorderLayout.NORTH);
+
+		final JLabel subLabel = new JLabel();
+		subLabel.setText("Choose two matrices to multiply.");
+		top.add(subLabel, BorderLayout.CENTER);
+
+		final JComboBox comMatTwo = new JComboBox(matList);
+		comMatTwo.setEditable(true);
+		top.add(comMatTwo, BorderLayout.SOUTH);
+
+		final JButton okButton = new JButton("OK");
+		mainFrame.add(okButton, BorderLayout.SOUTH);
+		okButton.addActionListener(new ActionListener() {
+
+		    @Override
+		    public void actionPerformed(ActionEvent arg0) {
+			if (matrices.size() == 0)
+			{
+			    area.append("Error: no matrices selected.\n");
+			}
+			else
+			{
+			    String multOne = (String) comMatOne.getSelectedItem();
+			    String multTwo = (String) comMatTwo.getSelectedItem();
+			    if (map.get(multOne).getColumns() == map.get(multTwo)
+				    .getRows())
+			    {
+
+				area.append("Multiplying matrices " + multOne + " and "
+					+ multTwo + "\n");
+				printMatrixString(multOne);
+				area.append("\n * \n");
+				printMatrixString(multTwo);
+				area.append("\n = \n");
+				result = Matrix.multiply(map.get(multOne),
+					map.get(multTwo));
+				printMatrix(result);
+				area.append("\n");
+			    }
+
+			    else
+			    {
+				area.append("Error: only certain-sized matrices can be multiplied.\n");
+			    }
+			}
+			mainFrame.dispose();
+		    }
+
+		});
+
+		mainFrame.setSize(300, 200);
+		mainFrame.setVisible(true);
+		mainFrame.setLocationRelativeTo(null);
+
+		mainFrame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
 	    }
 	});
 
@@ -345,8 +593,8 @@ public class Swing extends JFrame {
 	JButton transposeButton = new JButton("Transpose");
 	transposeButton.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
-		// tranpose matrix
-		
+		// transpose matrix
+
 		final JFrame frame = new JFrame("Tranpose Matrix");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -359,8 +607,7 @@ public class Swing extends JFrame {
 		comMatOne.setEditable(true);
 		frame.add(comMatOne, BorderLayout.NORTH);
 
-		final JLabel rrefLabel = new JLabel(
-			"Choose a matrix to tranpose!",
+		final JLabel rrefLabel = new JLabel("Choose a matrix to transpose!",
 			null, JLabel.CENTER);
 		frame.add(rrefLabel);
 
@@ -373,8 +620,9 @@ public class Swing extends JFrame {
 			if (matrices.size() != 0)
 			{
 			    String chosenMatrix = (String) comMatOne.getSelectedItem();
-			    area.append("Finding the tranpose of " + chosenMatrix + "\n\n");
-			    printMatrix(Matrix.transpose(map.get(chosenMatrix)));
+			    area.append("Transpose: " + chosenMatrix + "\n\n");
+			    result = Matrix.transpose(map.get(chosenMatrix));
+			    printMatrix(result);
 			    area.append("\n");
 			}
 			else
@@ -428,7 +676,8 @@ public class Swing extends JFrame {
 			{
 			    String chosenMatrix = (String) comMatOne.getSelectedItem();
 			    area.append("Finding the RREF of " + chosenMatrix + "\n\n");
-			    printMatrix(Matrix.rref(map.get(chosenMatrix)));
+			    result = Matrix.rref(map.get(chosenMatrix));
+			    printMatrix(result);
 			    area.append("\n");
 			}
 			else
@@ -466,10 +715,10 @@ public class Swing extends JFrame {
 
 		for (int i = 0; i < matrices.size(); i++)
 		{
-		    if (map.get(matrices.get(i)).getRows() != map.get(matrices.get(i))
-			    .getColumns())
+		    if (!Matrix.isSquare(map.get(matrices.get(i))))
 		    {
 			matrices.remove(i);
+			i--;
 		    }
 		}
 		Object[] matList = matrices.toArray();
@@ -481,10 +730,10 @@ public class Swing extends JFrame {
 		comMatOne.setEditable(true);
 		frame.add(comMatOne, BorderLayout.NORTH);
 
-		final JLabel addLabel = new JLabel();
-		addLabel.setText("Choose a square matrix whose determinant you want to find!");
+		final JLabel addLabel = new JLabel(
+			"Choose a square matrix whose determinant you want to find!",
+			null, JLabel.CENTER);
 		frame.add(addLabel, BorderLayout.CENTER);
-
 		final JButton okButton = new JButton("OK");
 		frame.add(okButton, BorderLayout.SOUTH);
 		okButton.addActionListener(new ActionListener() {
@@ -497,9 +746,82 @@ public class Swing extends JFrame {
 			    area.append("Finding the determinant of " + chosenMatrix
 				    + "\n\n");
 			    printMatrix((map.get(chosenMatrix)));
-			    area.append("\n The determinant of " + chosenMatrix
-				    + " is:\n" + Matrix.det(map.get(chosenMatrix))
-				    + "\n\n");
+			    area.append("\nThe determinant of " + chosenMatrix + " is:\n"
+				    + Matrix.det(map.get(chosenMatrix)) + "\n\n");
+			}
+			else
+			{
+			    area.append("Error: no matrix selected.\n\n");
+			}
+			frame.dispose();
+		    }
+
+		});
+
+		frame.setSize(400, 200);
+		frame.setVisible(true);
+		frame.setLocationRelativeTo(null);
+
+		frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+	    }
+	});
+
+	JButton inverseButton = new JButton("Inverse");
+	inverseButton.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		// find inverse of matrix, use result
+	    }
+	});
+
+	JButton eigenButton = new JButton("Eigenvalues & Eigenvectors");
+	eigenButton.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		// find eigenvalues and vectors of square matrix
+	    }
+	});
+
+	JButton traceButton = new JButton("Trace");
+	traceButton.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		// find trace of square matrix
+
+		final ArrayList<String> matrices = new ArrayList<String>();
+		matrices.addAll(map.keySet());
+
+		for (int i = 0; i < matrices.size(); i++)
+		{
+		    if (!Matrix.isSquare(map.get(matrices.get(i))))
+		    {
+			matrices.remove(i);
+			i--;
+		    }
+		}
+		Object[] matList = matrices.toArray();
+
+		final JFrame frame = new JFrame("Trace of Matrix");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		final JComboBox comMatOne = new JComboBox(matList);
+		comMatOne.setEditable(true);
+		frame.add(comMatOne, BorderLayout.NORTH);
+
+		final JLabel addLabel = new JLabel();
+		addLabel.setText("Choose a square matrix whose \ntrace you want to find!");
+		frame.add(addLabel, BorderLayout.CENTER);
+
+		final JButton okButton = new JButton("OK");
+		frame.add(okButton, BorderLayout.SOUTH);
+		okButton.addActionListener(new ActionListener() {
+
+		    @Override
+		    public void actionPerformed(ActionEvent arg0) {
+			if (matrices.size() != 0)
+			{
+			    String chosenMatrix = (String) comMatOne.getSelectedItem();
+			    area.append("Finding the trace of " + chosenMatrix + "\n\n");
+			    printMatrix((map.get(chosenMatrix)));
+			    area.append("\nThe trace of " + chosenMatrix + " is:\n"
+				    + Matrix.trace(map.get(chosenMatrix)) + "\n\n");
 			}
 			else
 			{
@@ -515,27 +837,6 @@ public class Swing extends JFrame {
 		frame.setLocationRelativeTo(null);
 
 		frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-	    }
-	});
-
-	JButton inverseButton = new JButton("Inverse");
-	inverseButton.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent arg0) {
-		// find inverse of matrix
-	    }
-	});
-
-	JButton eigenButton = new JButton("Eigenvalues & Eigenvectors");
-	eigenButton.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent arg0) {
-		// find eigenvalues and vectors of square matrix
-	    }
-	});
-
-	JButton traceButton = new JButton("Trace");
-	traceButton.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent arg0) {
-		// find trace of square matrix
 	    }
 	});
 
@@ -560,43 +861,25 @@ public class Swing extends JFrame {
 
 	// add buttons and rigid areas
 
-	dimButton.setAlignmentX(CENTER_ALIGNMENT);
-	leftP.add(dimButton);
-	leftP.add(Box.createRigidArea(standardDimension));
+	List<JButton> buttonsLeft = new ArrayList<JButton>();
+	buttonsLeft.add(dimButton);
+	buttonsLeft.add(editButton);
+	buttonsLeft.add(delButton);
+	buttonsLeft.add(resultButton);
+	buttonsLeft.add(viewButton);
+	buttonsLeft.add(addButton);
+	buttonsLeft.add(subtractButton);
+	buttonsLeft.add(multiplyButton);
+	buttonsLeft.add(transposeButton);
 
-	editButton.setAlignmentX(CENTER_ALIGNMENT);
-	leftP.add(editButton);
-	leftP.add(Box.createRigidArea(standardDimension));
+	for (JButton jb : buttonsLeft)
+	{
+	    jb.setAlignmentX(CENTER_ALIGNMENT);
+	    leftP.add(jb);
+	    leftP.add(Box.createRigidArea(standardDimension));
+	}
 
-	viewButton.setAlignmentX(CENTER_ALIGNMENT);
-	leftP.add(viewButton);
-	leftP.add(Box.createRigidArea(standardDimension));
-
-	addButton.setAlignmentX(CENTER_ALIGNMENT);
-	leftP.add(addButton);
-	leftP.add(Box.createRigidArea(standardDimension));
-
-	subtractButton.setAlignmentX(CENTER_ALIGNMENT);
-	leftP.add(subtractButton);
-	leftP.add(Box.createRigidArea(standardDimension));
-
-	multiplyButton.setAlignmentX(CENTER_ALIGNMENT);
-	leftP.add(multiplyButton);
-	leftP.add(Box.createRigidArea(standardDimension));
-
-	transposeButton.setAlignmentX(CENTER_ALIGNMENT);
-	leftP.add(transposeButton);
-	leftP.add(Box.createRigidArea(standardDimension));
-
-	rowReduceButton.setAlignmentX(CENTER_ALIGNMENT);
-	leftP.add(rowReduceButton);
-	leftP.add(Box.createRigidArea(standardDimension));
-
-	solveButton.setAlignmentX(CENTER_ALIGNMENT);
-	leftP.add(solveButton);
-	leftP.add(Box.createRigidArea(standardDimension));
-
-	// Main Console Area
+	// Main console Area
 
 	mainPanel.add(Box.createVerticalGlue());
 	JScrollPane pane = new JScrollPane();
@@ -610,29 +893,23 @@ public class Swing extends JFrame {
 	area.setEditable(false);
 	area.append("Welcome to Fun with Matrices! Use this as a matrix calculator, or a way to brush up on your knowledge of linear algebra! \n\nStart by defining or 'dimming' a matrix as shown at the top left!\n\n");
 
-	detButton.setAlignmentX(CENTER_ALIGNMENT);
-	rightP.add(detButton);
-	rightP.add(Box.createRigidArea(standardDimension));
+	List<JButton> buttonsRight = new ArrayList<JButton>();
 
-	inverseButton.setAlignmentX(CENTER_ALIGNMENT);
-	rightP.add(inverseButton);
-	rightP.add(Box.createRigidArea(standardDimension));
+	buttonsRight.add(detButton);
+	buttonsRight.add(inverseButton);
+	buttonsRight.add(rowReduceButton);
+	buttonsRight.add(solveButton);
+	buttonsRight.add(eigenButton);
+	buttonsRight.add(traceButton);
+	buttonsRight.add(clearButton);
+	buttonsRight.add(quitButton);
 
-	eigenButton.setAlignmentX(CENTER_ALIGNMENT);
-	rightP.add(eigenButton);
-	rightP.add(Box.createRigidArea(standardDimension));
-
-	traceButton.setAlignmentX(CENTER_ALIGNMENT);
-	rightP.add(traceButton);
-	rightP.add(Box.createRigidArea(standardDimension));
-
-	clearButton.setAlignmentX(CENTER_ALIGNMENT);
-	rightP.add(clearButton);
-	rightP.add(Box.createRigidArea(standardDimension));
-
-	quitButton.setAlignmentX(CENTER_ALIGNMENT);
-	rightP.add(quitButton);
-	rightP.add(Box.createRigidArea(standardDimension));
+	for (JButton jb : buttonsRight)
+	{
+	    jb.setAlignmentX(CENTER_ALIGNMENT);
+	    rightP.add(jb);
+	    rightP.add(Box.createRigidArea(standardDimension));
+	}
 
 	setTitle("~ Fun with Matrices ~");
 	setSize(windowWidth, windowHeight); // width, height
@@ -649,7 +926,7 @@ public class Swing extends JFrame {
 	});
     }
 
-    public static boolean isParsableToInt(String check) {
+    private static boolean isParsableToInt(String check) {
 	try
 	{
 	    Integer.parseInt(check);
@@ -667,14 +944,15 @@ public class Swing extends JFrame {
 	{
 	    for (int j = 0; j < columns; j++)
 	    {
-		contents[i][j] = Double.parseDouble(elements.split(" ")[columns * i + j]);
+		contents[i][j] = Double.parseDouble(elements.split("\\s+")[columns * i
+			+ j]);
 	    }
 	}
 	return contents;
     }
 
     private boolean validInput(String elements) {
-	// todo
+	// TODO
 	return true;
     }
 
@@ -683,23 +961,15 @@ public class Swing extends JFrame {
 	{
 	    for (int j = 0; j < matrix.getColumns(); j++)
 	    {
-		area.append(df.format(matrix.getElement(i, j)) + " ");
+		area.append(String.format("% 5.3f", matrix.getElement(i, j)) + " ");
+		// df.format(matrix.getElement(i, j)) + " ");
 	    }
 	    area.append("\n");
 	}
     }
 
     private void printMatrixString(String matrix) {
-	area.append("\nMatrix: " + matrix + "\n");
-	for (int i = 0; i < map.get(matrix).getRows(); i++)
-	{
-	    for (int j = 0; j < map.get(matrix).getColumns(); j++)
-	    {
-		area.append(df.format(map.get(matrix).getElement(i, j)) + " ");
-	    }
-	    area.append("\n");
-	}
-
+	printMatrix(map.get(matrix));
     }
 
 }
