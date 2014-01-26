@@ -1,4 +1,5 @@
-package ca.pluszero;
+package ca.pluszero.matrices;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -21,14 +22,18 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
-public class Swing extends JFrame {
+public class MatrixSolver extends JFrame {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5944765813714224744L;
 	private HashMap<String, Matrix> map = new HashMap<String, Matrix>();
 	private JTextArea area;
 	private DecimalFormat df = new DecimalFormat("###.000");
 	private Matrix result = null;
 
-	public Swing() {
+	public MatrixSolver() {
 		initUI();
 
 	}
@@ -840,7 +845,7 @@ public class Swing extends JFrame {
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				Swing ex = new Swing();
+				MatrixSolver ex = new MatrixSolver();
 				ex.setVisible(true);
 			}
 		});

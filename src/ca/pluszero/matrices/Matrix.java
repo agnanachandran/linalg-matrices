@@ -1,4 +1,4 @@
-package ca.pluszero;
+package ca.pluszero.matrices;
 
 public class Matrix {
 	private int rows;
