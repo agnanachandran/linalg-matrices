@@ -24,10 +24,9 @@ import javax.swing.SwingUtilities;
 
 public class MatrixSolver extends JFrame {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5944765813714224744L;
+	private static final String ERROR_NO_MATRICES_SELECTED = "Error: no matrices selected.\n";
+    private static final String ERROR_NO_MATRIX_SELECTED = "Error: no matrix selected.\n";
+    private static final long serialVersionUID = -5944765813714224744L;
 	private HashMap<String, Matrix> map = new HashMap<String, Matrix>();
 	private JTextArea area;
 	private DecimalFormat df = new DecimalFormat("###.000");
@@ -35,7 +34,6 @@ public class MatrixSolver extends JFrame {
 
 	public MatrixSolver() {
 		initUI();
-
 	}
 
 	public final void initUI() {
@@ -312,7 +310,7 @@ public class MatrixSolver extends JFrame {
 							printMatrixString(chosenMatrix);
 							area.append("\n");
 						} else {
-							area.append("Error: no matrix selected.\n");
+							area.append(ERROR_NO_MATRIX_SELECTED);
 						}
 						frame.dispose();
 					}
@@ -359,7 +357,7 @@ public class MatrixSolver extends JFrame {
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
 						if (matrices.size() == 0) {
-							area.append("Error: no matrices selected\n");
+							area.append(ERROR_NO_MATRIX_SELECTED);
 						} else {
 							String addOne = (String) comMatOne.getSelectedItem();
 							String addTwo = (String) comMatTwo.getSelectedItem();
@@ -427,7 +425,7 @@ public class MatrixSolver extends JFrame {
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
 						if (matrices.size() == 0) {
-							area.append("Error: no matrices selected.\n");
+							area.append(ERROR_NO_MATRICES_SELECTED);
 						} else {
 							String subtractOne = (String) comMatOne.getSelectedItem();
 							String subtractTwo = (String) comMatTwo.getSelectedItem();
@@ -498,7 +496,7 @@ public class MatrixSolver extends JFrame {
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
 						if (matrices.size() == 0) {
-							area.append("Error: no matrices selected.\n");
+							area.append(ERROR_NO_MATRICES_SELECTED);
 						} else {
 							String multOne = (String) comMatOne.getSelectedItem();
 							String multTwo = (String) comMatTwo.getSelectedItem();
@@ -568,7 +566,7 @@ public class MatrixSolver extends JFrame {
 							printMatrix(result);
 							area.append("\n");
 						} else {
-							area.append("Error: no matrix selected.\n");
+							area.append(ERROR_NO_MATRIX_SELECTED);
 						}
 						frame.dispose();
 					}
@@ -620,7 +618,7 @@ public class MatrixSolver extends JFrame {
 							printMatrix(result);
 							area.append("\n");
 						} else {
-							area.append("Error: no matrix selected.\n");
+							area.append(ERROR_NO_MATRIX_SELECTED);
 						}
 						frame.dispose();
 					}
@@ -683,7 +681,7 @@ public class MatrixSolver extends JFrame {
 							area.append("\nThe determinant of " + chosenMatrix + " is:\n"
 									+ Matrix.det(map.get(chosenMatrix)) + "\n\n");
 						} else {
-							area.append("Error: no matrix selected.\n\n");
+							area.append("Error: no matrix selected.\n");
 						}
 						frame.dispose();
 					}
